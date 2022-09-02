@@ -30,6 +30,9 @@
         where email = #{email}
     </select>
 
+<!--    “keyProperty="id"的作用是: 一般都是结合数据库自动生成主键来使用,由于是数据库生成的主键, 所
+以在这个对象持久化到数据库之前是对象中的这个属性是没有属性值的,但是在持久化之后又想使用这个主键, -->
+
     <insert id="insertUser" parameterType="User" keyProperty="id">
         insert into user (<include refid="insertFields"></include>)
         values(#{username}, #{password}, #{salt}, #{email}, #{type}, #{status}, #{activationCode}, #{headerUrl}, #{createTime})
