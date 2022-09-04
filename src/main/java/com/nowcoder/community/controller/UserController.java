@@ -9,6 +9,8 @@ import com.nowcoder.community.service.UserService;
 import com.nowcoder.community.util.CommunityConstant;
 import com.nowcoder.community.util.CommunityUtil;
 import com.nowcoder.community.util.HostHolder;
+import com.qiniu.util.Auth;
+import com.qiniu.util.StringMap;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,12 +55,65 @@ public class UserController implements CommunityConstant {
     @Autowired
     private FollowService followService;
 
+    @Value("${qiniu.key.access}")
+    private String accessKey;
+    
+    @Value("${qiniu.key.secret}")
+    private String secretKey;
+
+    @Value("${qiniu.bucket.header.name}")
+    private String headerBucketName;
+
+    @Value("${qiniu.bucket.header.url}")
+    private String headerBucketUrl;
+
     @LoginRequired
     @RequestMapping(path = "/setting", method = RequestMethod.GET)
-    public String getSettingPage() {
+    public String getSettingPage(Model model)
+    {
+        //生成七牛云服务器的上传凭证
+        String fileName=CommunityUtil.generateUUID();
+        StringMap policy=new StringMap();
+        policy.put("returnBody",CommunityUtil.getJSONString(0));
+        //生成上传凭证
+        Auth auth = Auth.create(accessKey, secretKey);
+
+        //此处的凭证上传，七牛云为我们提供了几种方式
+        /*
+        第一种：简单上传凭证 String upToken = auth.uploadToken(bucket);
+         */
+
+        /*
+        第二种：覆盖上传除了需要简单上传所需要的信息之外，还需要想进行覆盖的文件名称，
+      这个文件名称同时可是客户端上传代码中指定的文件名，两者必须一致。
+      String upToken = auth.uploadToken(bucket, key);
+         */
+
+        /*
+        第三种：自定义上传回复的凭证
+        默认情况下，文件上传到七牛之后，在没有设置returnBody或者回调相关的参数情况下，七牛返回给上传端的回复格式为hash和key
+        我们希望能自定义这个返回的JSON格式的内容，可以通过设置returnBody参数来实现
+         */
+        String uploadToken = auth.uploadToken(headerBucketName, fileName, 3600, policy);
+
+        //将上传的凭证直接保留给网页前端
+        model.addAttribute("uploadToken", uploadToken);
+        model.addAttribute("fileName", fileName);
+
         return "/site/setting";
     }
 
+    // 更新头像路径
+    @RequestMapping(path = "/header/url", method = RequestMethod.POST)
+    @ResponseBody
+    public String updateHeaderUrl(String fileName) {
+        if (StringUtils.isBlank(fileName)) {
+            return CommunityUtil.getJSONString(1, "文件名不能为空!");
+        }
+        String url = headerBucketUrl + "/" + fileName;
+        userService.updateHeader(hostHolder.getUser().getId(), url);
+        return CommunityUtil.getJSONString(0);
+    }
     @RequestMapping(path = "/modify", method = RequestMethod.GET)
     public String getmodifyPage() {
         return "/site/setting";
@@ -89,6 +144,7 @@ public class UserController implements CommunityConstant {
         return "redirect:/login";
     }
 
+    //废弃
     @LoginRequired
     @RequestMapping(path = "/upload", method = RequestMethod.POST)
     public String uploadHeader(MultipartFile headerImage, Model model) {
@@ -125,6 +181,7 @@ public class UserController implements CommunityConstant {
         return "redirect:/index";
     }
 
+    //废弃
     //这里的路径要和上传时设置的路径一致，不能乱写
     @RequestMapping(path = "/header/{fileName}", method = RequestMethod.GET)
     public void getHeader(@PathVariable("fileName") String fileName, HttpServletResponse response) {

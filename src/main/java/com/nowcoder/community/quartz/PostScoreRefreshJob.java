@@ -72,7 +72,6 @@ public class PostScoreRefreshJob implements Job, CommunityConstant {
             logger.error("该帖子不存在: id = " + postId);
             return;
         }
-
         // 是否精华
         boolean wonderful = post.getStatus() == 1;
         // 评论数量

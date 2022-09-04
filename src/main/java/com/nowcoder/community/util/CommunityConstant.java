@@ -71,6 +71,11 @@ int ENTITY_TYPE_USER=3;
      *主题：发帖
      */
     String TOPIC_DELETE="delete";
+
+    /**
+     * 主题: 长图分享
+     */
+    String TOPIC_SHARE = "share";
     /**
      * 普通用户权限
      */

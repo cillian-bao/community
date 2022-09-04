@@ -1,6 +1,5 @@
 package com.nowcoder.community.config;
 
-
 import com.nowcoder.community.util.CommunityConstant;
 import com.nowcoder.community.util.CommunityUtil;
 import org.springframework.context.annotation.Configuration;
@@ -57,7 +56,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter implements Comm
                         AUTHORITY_MODERATOR
                 ).antMatchers(
                         "/discuss/delete",
-                "/data/**"
+                "/data/**",
+                "/actuator/**"
                 ).hasAnyAuthority(
                         AUTHORITY_ADMIN
                 )

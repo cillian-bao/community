@@ -9,8 +9,8 @@ import org.springframework.stereotype.Component;
 /*
 Spring主要用@Aspect注解来实现切面的声明
  */
-@Component
-@Aspect
+//@Component
+//@Aspect
 public class AlphaAspect {
 
     @Pointcut("execution(* com.nowcoder.community.service.*.*(..))")
